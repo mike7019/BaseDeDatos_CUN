@@ -231,6 +231,7 @@ Para contribuir a este proyecto:
 ### 5. Conclusión
 El diseño implementa un modelo relacional claro y normalizado. El uso de vistas mejora la seguridad y simplifica las consultas frecuentes. La representación en álgebra relacional valida la correspondencia lógica con las operaciones realizadas en SQL.
 
-## Licencia
+## Entregado por
 
-Este proyecto está bajo la Licencia MIT.
+- Michael Garzon Rodriguez
+- John Jairo Camargo Macana
