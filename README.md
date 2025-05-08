@@ -2,6 +2,24 @@
 
 Este proyecto implementa una base de datos para un sistema de gestión de biblioteca utilizando MySQL, diseñado para administrar libros, usuarios, préstamos y multas en un entorno académico.
 
+## Informe de Diseño y Consultas de la Base de Datos
+
+### 1. Introducción
+Este informe documenta el diseño de la base de datos para un sistema de gestión de biblioteca, incluyendo las estructuras de las tablas, relaciones, consultas SQL, vistas para simplificar y restringir el acceso a los datos, y su representación en álgebra relacional.
+
+### 2. Modelo de Base de Datos Relacional
+**Tablas:**
+* **libro(id_libro, titulo, autor, editorial, anio_publicacion, categoria, stock)**
+* **usuario(id_usuario, nombre, apellido, email, telefono, tipo_usuario, carrera_departamento)**
+* **prestamo(id_prestamo, id_usuario, fecha_prestamo, fecha_devolucion, estado)**
+* **detalle_prestamo(id_prestamo, id_libro, cantidad)**
+* **multa(id_multa, id_usuario, monto, motivo, estado)**
+
+**Relaciones:**
+* Cada *usuario* puede tener muchos *préstamos* (1:N).
+* Cada *préstamo* puede incluir varios *libros* (N:M), implementado mediante la tabla *detalle_prestamo*.
+* Cada *usuario* puede tener muchas *multas* (1:N).
+
 ## Estructura del Proyecto
 
 El sistema está desplegado usando Docker Compose y cuenta con una base de datos MySQL con las siguientes tablas:
@@ -16,35 +34,30 @@ El sistema está desplegado usando Docker Compose y cuenta con una base de datos
 
 - Docker
 - Docker Compose
-- DBeaver (Database Client)
 
 ## Instalación y Configuración
 
-1. Creamos una carpeta en un directorio preferido y clonamos con Git este repositorio usando una consola de comandos:
-
-```bash
-git clone https://github.com/mike7019/BaseDeDatos_CUN
-cd BaseDeDatos_CUN
-```
+1. Clone este repositorio:
+   ```bash
+   git clone https://github.com/tu-usuario/biblioteca-db.git
+   cd biblioteca-db
+   ```
 
 2. Inicie los servicios con Docker Compose:
-
-```bash
-docker-compose up -d
-```
+   ```bash
+   docker-compose up -d
+   ```
 
 3. Conéctese a la base de datos MySQL:
-
-```bash
-docker exec -it my-mysql mysql -u user -puser biblioteca
-```
+   ```bash
+   docker exec -it my-mysql mysql -u user -puser biblioteca
+   ```
 
 4. Ejecute los scripts SQL para crear las tablas y cargar datos de prueba (si no se cargaron automáticamente).
 
 ## Estructura de la Base de Datos
 
 ### Tabla `libro`
-
 ```sql
 CREATE TABLE `libro` (
   `id_libro` INT PRIMARY KEY AUTO_INCREMENT,
@@ -58,7 +71,6 @@ CREATE TABLE `libro` (
 ```
 
 ### Tabla `usuario`
-
 ```sql
 CREATE TABLE `usuario` (
   `id_usuario` INT PRIMARY KEY AUTO_INCREMENT,
@@ -72,7 +84,6 @@ CREATE TABLE `usuario` (
 ```
 
 ### Tabla `prestamo`
-
 ```sql
 CREATE TABLE `prestamo` (
   `id_prestamo` INT PRIMARY KEY AUTO_INCREMENT,
@@ -85,7 +96,6 @@ CREATE TABLE `prestamo` (
 ```
 
 ### Tabla `detalle_prestamo`
-
 ```sql
 CREATE TABLE `detalle_prestamo` (
   `id_prestamo` INT,
@@ -98,7 +108,6 @@ CREATE TABLE `detalle_prestamo` (
 ```
 
 ### Tabla `multa`
-
 ```sql
 CREATE TABLE `multa` (
   `id_multa` INT PRIMARY KEY AUTO_INCREMENT,
@@ -113,23 +122,61 @@ CREATE TABLE `multa` (
 ## Consultas SQL Disponibles
 
 ### Consultas Básicas
-
 1. Listar todos los libros disponibles en la biblioteca
 2. Mostrar el historial de préstamos de un usuario específico
 3. Obtener los libros más prestados en el último semestre
 
 ### Consultas Avanzadas
-
 4. Determinar cuántos préstamos ha realizado cada tipo de usuario
 5. Obtener la cantidad total de libros prestados por cada carrera universitaria
 6. Listar los usuarios con multas activas y el monto total de sus multas
 7. Encontrar los libros que nunca han sido prestados
 8. Identificar a los usuarios que tienen préstamos vencidos
 
+### 3. Consultas SQL y Vistas
+
+#### 3.1 Vistas
+* **vista_libros_disponibles**: Lista solo libros con stock > 0.
+* **vista_historial_prestamos**: Historial de préstamos de cada usuario.
+* **vista_multas_activas**: Multas cuyo estado es "pendiente".
+* **vista_libros_mas_prestados**: Libros ordenados por la cantidad de veces prestados.
+* **vista_usuarios_con_prestamos_vencidos**: Usuarios con préstamos en estado "atrasado".
+
+#### 3.2 Consultas de ejemplo con Álgebra Relacional:
+
+* **Listar libros disponibles**:
+```sql
+SELECT * FROM vista_libros_disponibles;
+```
+**Álgebra relacional:** σ_stock>0_(libro)
+
+* **Historial de préstamos de un usuario**:
+```sql
+SELECT * FROM vista_historial_prestamos WHERE id_usuario = 3;
+```
+**Álgebra relacional:** σ_id_usuario=3_(usuario ⨝ prestamo)
+
+* **Multas pendientes:**
+```sql
+SELECT * FROM vista_multas_activas;
+```
+**Álgebra relacional:** σ_estado='pendiente'_(multa ⨝ usuario)
+
+* **Top 10 libros más prestados:**
+```sql
+SELECT * FROM vista_libros_mas_prestados LIMIT 10;
+```
+**Álgebra relacional:** γ_id_libro,titulo;COUNT(id_libro)_(detalle_prestamo ⨝ libro)
+
+* **Usuarios con préstamos vencidos:**
+```sql
+SELECT * FROM vista_usuarios_con_prestamos_vencidos;
+```
+**Álgebra relacional:** σ_estado='atrasado'_(usuario ⨝ prestamo)
+
 ## Datos de Prueba
 
 El sistema incluye datos de prueba para todas las tablas:
-
 - 5 libros con distintas categorías
 - 4 usuarios (2 estudiantes y 2 profesores)
 - 4 préstamos con diferentes estados
@@ -138,7 +185,7 @@ El sistema incluye datos de prueba para todas las tablas:
 
 ## Diagrama Entidad-Relación
 
-```sh
+```
 +----------+       +------------+       +-----------------+
 |  LIBRO   |-------|  DETALLE   |-------|    PRESTAMO     |
 +----------+       |  PRESTAMO  |       +-----------------+
@@ -168,10 +215,19 @@ JOIN `libro` l ON d.`id_libro` = l.`id_libro`
 WHERE p.`id_usuario` = 1;
 ```
 
+### 4. Usuario de Consulta
+Se ha creado el usuario `usuario_consulta` con acceso solo a las vistas:
+
+```sql
+CREATE USER 'usuario_consulta'@'%' IDENTIFIED BY 'consulta123';
+GRANT SELECT ON biblioteca.vista_* TO 'usuario_consulta'@'%';
+```
+
+Esto asegura acceso restringido a datos sensibles, como multas o préstamos, sin exponer directamente las tablas.
+
 ## Configuración de MySQL
 
 El servicio MySQL está configurado con:
-
 - Usuario: user
 - Contraseña: user
 - Base de datos: biblioteca
@@ -181,10 +237,12 @@ El servicio MySQL está configurado con:
 ## Contribución
 
 Para contribuir a este proyecto:
-
 1. Haga un fork del repositorio
 2. Cree una rama para su característica
 3. Envíe un pull request
+
+### 5. Conclusión
+El diseño implementa un modelo relacional claro y normalizado. El uso de vistas mejora la seguridad y simplifica las consultas frecuentes. La representación en álgebra relacional valida la correspondencia lógica con las operaciones realizadas en SQL.
 
 ## Licencia
 
