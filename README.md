@@ -138,20 +138,7 @@ El sistema incluye datos de prueba para todas las tablas:
 
 ## Diagrama Entidad-Relación
 
-```sh
-+----------+       +------------+       +-----------------+
-|  LIBRO   |-------|  DETALLE   |-------|    PRESTAMO     |
-+----------+       |  PRESTAMO  |       +-----------------+
-                   +------------+              |
-                                               |
-                                        +------+------+
-                                        |   USUARIO   |
-                                        +------+------+
-                                               |
-                                        +------+------+
-                                        |    MULTA    |
-                                        +-------------+
-```
+![Image](https://github.com/user-attachments/assets/db4f3330-6d4e-4315-b8b6-3db8a8d1c49a)
 
 ## Uso
 
